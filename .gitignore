@@ -3,6 +3,7 @@
 **/vagrant_ansible_inventory
 temp
 .idea
+ansible.log
 .tox
 .cache
 *.bak
