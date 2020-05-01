@@ -16,6 +16,9 @@ You can get your invite [here](http://slack.k8s.io/)
 To deploy the cluster you can use :
 
 ### Ansible
+```ShellSession
+$ source Ansible/bin/activate
+```
 
 #### Usage
 
