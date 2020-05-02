@@ -22,6 +22,7 @@ kubeadm_images: {}
 # on Container Linux by CoreOS unless the download_localhost is true and localhost
 # is running another OS type. Default compress level is 1 (fdownload_localhostastest).
 download_run_once: True
+download_compress: 1
 
 # if this is set to true will download container
 download_container: True
