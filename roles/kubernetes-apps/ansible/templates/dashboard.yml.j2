@@ -78,7 +78,9 @@ metadata:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: kubernetes-dashboard-minimal
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
   namespace: kube-system
 rules:
   # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
@@ -94,23 +96,25 @@ rules:
   # Allow Dashboard to get metrics from heapster.
 - apiGroups: [""]
   resources: ["services"]
-  resourceNames: ["heapster"]
+  resourceNames: ["heapster", "dashboard-metrics-scraper"]
   verbs: ["proxy"]
 - apiGroups: [""]
   resources: ["services/proxy"]
-  resourceNames: ["heapster", "http:heapster:", "https:heapster:"]
+  resourceNames: ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]
   verbs: ["get"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: kubernetes-dashboard-minimal
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
   namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: kubernetes-dashboard-minimal
+  name: kubernetes-dashboard
 subjects:
 - kind: ServiceAccount
   name: kubernetes-dashboard
@@ -122,27 +126,28 @@ subjects:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: kubernetes-dashboard-anonymous
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
 rules:
-- apiGroups: [""]
-  resources: ["services/proxy"]
-  resourceNames: ["https:kubernetes-dashboard:"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- nonResourceURLs: ["/ui", "/ui/*", "/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/*"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Allow Metrics Scraper to get metrics from the Metrics server
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kubernetes-dashboard-anonymous
+  name: kubernetes-dashboard
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kubernetes-dashboard-anonymous
+  name: kubernetes-dashboard
 subjects:
-- kind: User
-  name: system:anonymous
+  - kind: ServiceAccount
+    name: kubernetes-dashboard
+    namespace: kubernetes-dashboard
 
 ---
 # ------------------- Dashboard Deployment ------------------- #
@@ -237,3 +242,57 @@ spec:
       targetPort: 8443
   selector:
     k8s-app: kubernetes-dashboard
+
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    k8s-app: dashboard-metrics-scraper
+  name: dashboard-metrics-scraper
+  namespace: kubernetes-dashboard
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: dashboard-metrics-scraper
+  template:
+    metadata:
+      labels:
+        k8s-app: dashboard-metrics-scraper
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
+    spec:
+      containers:
+        - name: dashboard-metrics-scraper
+          image: kubernetesui/metrics-scraper:v1.0.1
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsUser: 1001
+            runAsGroup: 2001
+      serviceAccountName: kubernetes-dashboard
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      # Comment the following tolerations if Dashboard must not be deployed on master
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
