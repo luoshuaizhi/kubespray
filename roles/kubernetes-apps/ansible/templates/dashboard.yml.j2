@@ -147,7 +147,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: kubernetes-dashboard
-    namespace: kubernetes-dashboard
+    namespace: kube-system
 
 ---
 # ------------------- Dashboard Deployment ------------------- #
@@ -237,6 +237,7 @@ metadata:
   name: kubernetes-dashboard
   namespace: kube-system
 spec:
+  type: NodePort
   ports:
     - port: 443
       targetPort: 8443
@@ -251,7 +252,7 @@ metadata:
   labels:
     k8s-app: dashboard-metrics-scraper
   name: dashboard-metrics-scraper
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   replicas: 1
   revisionHistoryLimit: 10
