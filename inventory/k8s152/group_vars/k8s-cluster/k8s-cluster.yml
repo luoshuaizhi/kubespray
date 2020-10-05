@@ -24,9 +24,15 @@ kube_version: v1.16.8
 
 # kubernetes image repo define
 # gcr_image_repo: "gcr.io"
-gcr_image_repo: "dailynuts"
+gcr_image_repo: "registry.cloud.priv/dailynuts"
 # kube_image_repo: "k8s.gcr.io"
-kube_image_repo: "dailynuts"
+kube_image_repo: "registry.cloud.priv/dailynuts"
+
+# docker image repo define
+docker_image_repo: "registry.cloud.priv"
+
+# quay image repo define
+quay_image_repo: "registry.cloud.priv"
 
 # Where the binaries will be downloaded.
 # Note: ensure that you've enough disk space (about 1G)

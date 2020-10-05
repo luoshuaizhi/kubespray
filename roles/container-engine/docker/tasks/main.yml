@@ -106,7 +106,7 @@
     name: docker-ce
     baseurl: "{{ docker_rh_repo_base_url }}"
     description: "Docker CE Stable - $basearch"
-    gpgcheck: yes
+    gpgcheck: no
     gpgkey: "{{ docker_rh_repo_gpgkey }}"
     keepcache: "{{ docker_rpm_keepcache | default('1') }}"
     proxy: " {{ http_proxy | default('_none_') }}"
