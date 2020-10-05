@@ -21,6 +21,7 @@ inventory/*
 !inventory/local
 !inventory/sample
 !inventory/mycluster
+!inventory/k8s152
 inventory/*/artifacts/
 
 # Byte-compiled / optimized / DLL files

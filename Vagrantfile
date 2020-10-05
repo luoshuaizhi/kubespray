@@ -178,6 +178,8 @@ Vagrant.configure("2") do |config|
       # Disable swap for each vm
       node.vm.provision "shell", inline: "swapoff -a"
 
+      # node.vm.provision "shell", inline: "route add default gw 10.10.152.254"
+
     end
   end
 end
