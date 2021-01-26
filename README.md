@@ -29,6 +29,11 @@ sudo pip3 install -r requirements.txt
 # Copy ``inventory/sample`` as ``inventory/mycluster``
 cp -rfp inventory/sample inventory/mycluster
 
+# ssh-keygen -t rsa
+# ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
+
+# systemctl stop firewalld & systemctl disable firewalld
+
 # Update Ansible inventory file with inventory builder
 declare -a IPS=(10.10.1.3 10.10.1.4 10.10.1.5)
 CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
